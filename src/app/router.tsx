@@ -32,8 +32,17 @@ export const router = createBrowserRouter([
         lazy: () => import('@/features/branches/CutReportPage').then((module) => ({ Component: module.CutReportPage })),
       },
       {
+        path: 'sucursales/:branchId/inventario',
+        lazy: () =>
+          import('@/features/branches/StoreInventoryPage').then((module) => ({ Component: module.StoreInventoryPage })),
+      },
+      {
         path: 'gerentes',
         lazy: () => import('@/features/managers/ManagerListPage').then((module) => ({ Component: module.ManagerListPage })),
+      },
+      {
+        path: 'catalogo',
+        lazy: () => import('@/features/catalog/CatalogListPage').then((module) => ({ Component: module.CatalogListPage })),
       },
       {
         path: 'perfil',

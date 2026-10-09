@@ -1,20 +1,33 @@
-import { ChevronRight, FuelIcon, MapPin } from 'lucide-react'
+import { ChevronRight, FuelIcon, MapPin, Package } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
 import { usePumaData } from '@/api/data'
 import { Segmented } from '@/components/puma/controls'
-import { BackLink, CardHeader, PageHeader, PumaCard } from '@/components/puma/primitives'
+import { BackLink, CardHeader, IconSquare, InitialsAvatar, PageHeader, Pill, PumaCard } from '@/components/puma/primitives'
 import { CutStatusRow, LossRow } from '@/components/puma/rows'
 import { FuelVolumeCard, SalesKPICard } from '@/components/puma/sales'
+import { StoreSalesCard } from '@/components/puma/store'
 import { RestockBanner, TankLevelsCard } from '@/components/puma/tanks'
 import { Button } from '@/components/ui/button'
 import { now } from '@/domain/calendar'
-import { closedCuts, cutOn, fullName, hasOperation, managerOf, referenceDate, registeredPumpCount, totalGallons, totalSales } from '@/domain/cut'
+import {
+  closedCuts,
+  cutOn,
+  fullName,
+  hasOperation,
+  initials,
+  managerOf,
+  referenceDate,
+  registeredPumpCount,
+  totalGallons,
+  totalSales,
+} from '@/domain/cut'
 import { computeMetrics } from '@/domain/dashboard'
 import { BusinessRules, CUT_SHIFTS, shiftInfo } from '@/domain/enums'
 import { mainAlert, tankLevels } from '@/domain/inventory'
 import { periodRange, periodTitle, SIMPLE_PERIODS, type PeriodFilter } from '@/domain/period'
+import { computeStoreMetrics, employeesOf, isOnShift, stockAlerts, stockLevels } from '@/domain/store'
 import { AppFormat, capitalize } from '@/lib/format'
 
 const HISTORY_PAGE = 6
@@ -23,7 +36,7 @@ const HISTORY_PAGE = 6
 export function StationDetailPage() {
   const { branchId } = useParams()
   const { data } = usePumaData()
-  const { branches, users } = data!
+  const { branches, users, catalog, stockEntries, sales, workShifts } = data!
   const branch = branches.find((candidate) => candidate.id === branchId)
   const [params, setParams] = useSearchParams()
   const [visibleCuts, setVisibleCuts] = useState(HISTORY_PAGE)
@@ -35,9 +48,21 @@ export function StationDetailPage() {
     if (!branch) return null
     const today = now()
     const tanks = tankLevels(branch)
+    const range = periodRange(period)
+    const branchSales = sales.filter((sale) => sale.branchId === branch.id)
+    const levels = stockLevels(
+      catalog,
+      stockEntries.filter((entry) => entry.branchId === branch.id),
+      branchSales,
+    )
     return {
       manager: managerOf(branch, users),
-      metrics: computeMetrics([branch], periodRange(period)),
+      metrics: computeMetrics([branch], range),
+      storeMetrics: computeStoreMetrics(branchSales, range, users),
+      stockAlertCount: stockAlerts(levels).length,
+      employees: employeesOf(branch.id, users),
+      // Employees with a shift in progress right now.
+      onShiftCount: workShifts.filter((shift) => shift.branchId === branch.id && isOnShift(shift, today)).length,
       tanks,
       alert: mainAlert(tanks),
       todayCuts: CUT_SHIFTS.map((shift) => ({ shift, cut: cutOn(branch, today, shift) })),
@@ -47,7 +72,7 @@ export function StationDetailPage() {
         .slice(0, 5),
       history: closedCuts(branch).sort((a, b) => referenceDate(b).getTime() - referenceDate(a).getTime()),
     }
-  }, [branch, users, period])
+  }, [branch, users, catalog, stockEntries, sales, workShifts, period])
 
   if (!branch || !detail) {
     return (
@@ -100,6 +125,41 @@ export function StationDetailPage() {
             <div className="flex flex-col gap-4">
               <SalesKPICard title="Ventas del periodo" metrics={detail.metrics} />
               <FuelVolumeCard gallons={detail.metrics.gallons} />
+            </div>
+
+            {/* Store, maintenance and staff of the station. */}
+            <StoreSalesCard metrics={detail.storeMetrics} />
+            <div className="flex flex-col gap-4">
+              <Link
+                to={`/sucursales/${branch.id}/inventario`}
+                className="flex items-center gap-3 rounded-card bg-card p-4 transition-colors hover:bg-muted/50"
+              >
+                <IconSquare icon={Package} color={detail.stockAlertCount > 0 ? 'var(--warning-amber)' : 'var(--brand-green)'} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-semibold">Inventario de tienda</p>
+                  <p className="text-xs text-muted-foreground">
+                    {detail.stockAlertCount === 0 ? 'Sin productos por reabastecer' : `${detail.stockAlertCount} por reabastecer`}
+                  </p>
+                </div>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground/60" strokeWidth={2.5} />
+              </Link>
+
+              <PumaCard className="flex flex-col gap-3">
+                <CardHeader title="Personal" trailing={`${detail.onShiftCount} en turno`} />
+                {detail.employees.length === 0 && (
+                  <p className="text-[13px] text-muted-foreground">Esta estación aún no tiene empleados registrados.</p>
+                )}
+                {detail.employees.map((employee) => (
+                  <div key={employee.id} className="flex items-center gap-2.5">
+                    <InitialsAvatar initials={initials(employee)} size={32} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px]">{fullName(employee)}</p>
+                      <p className="truncate text-xs text-muted-foreground">{employee.jobTitle || employee.email}</p>
+                    </div>
+                    {!employee.isActive && <Pill text="Inactivo" color="var(--brand-red)" />}
+                  </div>
+                ))}
+              </PumaCard>
             </div>
 
             <PumaCard className="flex flex-col gap-3">

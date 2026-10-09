@@ -7,6 +7,7 @@ import { IconSquare, PageHeader, Pill, PumaCard } from '@/components/puma/primit
 import { RefreshDataButton } from '@/components/puma/RefreshDataButton'
 import { BranchSalesTableCard, FuelSalesTableCard, SalesKPICard, StatTile } from '@/components/puma/sales'
 import { SalesChartCard } from '@/components/puma/SalesChartCard'
+import { StoreSalesCard } from '@/components/puma/store'
 import { TankLevelsCard, TankMatrixCard, TankStatusPill } from '@/components/puma/tanks'
 import { Button } from '@/components/ui/button'
 import { hasOperation } from '@/domain/cut'
@@ -14,6 +15,7 @@ import { computeMetrics } from '@/domain/dashboard'
 import { fuelInfo, tankStatusInfo } from '@/domain/enums'
 import { tankAlerts, tankLevels, type TankAlert } from '@/domain/inventory'
 import { fuelFilterFuels, fuelFilterTitle } from '@/domain/period'
+import { computeStoreMetrics } from '@/domain/store'
 import { DashboardFilterSheet } from '@/features/dashboard/DashboardFilterSheet'
 import { filtersRange, periodLabel, useDashboardFilters } from '@/features/dashboard/filters'
 import { AppFormat, roundTo } from '@/lib/format'
@@ -22,7 +24,7 @@ import { cn } from '@/lib/utils'
 /** Consolidated dashboard of the general manager (GeneralDashboardView). */
 export function DashboardPage() {
   const { data } = usePumaData()
-  const branches = data!.branches
+  const { branches, sales, users } = data!
   const { filters, update, reset } = useDashboardFilters()
   const [isShowingFilters, setIsShowingFilters] = useState(false)
 
@@ -31,15 +33,23 @@ export function DashboardPage() {
   const isConsolidated = selectedBranch === null
   const fuels = fuelFilterFuels(filters.fuel)
 
-  const { metrics, alerts, tankMatrix } = useMemo(() => {
+  const { metrics, storeMetrics, alerts, tankMatrix } = useMemo(() => {
     // Branches without a manager have no operation yet.
     const scope = selectedBranch ? [selectedBranch] : branches.filter(hasOperation)
+    const scopeIds = new Set(scope.map((branch) => branch.id))
+    const range = filtersRange(filters)
     return {
-      metrics: computeMetrics(scope, filtersRange(filters), fuelFilterFuels(filters.fuel)),
+      metrics: computeMetrics(scope, range, fuelFilterFuels(filters.fuel)),
+      // Store and maintenance sales of the same scope and period (not affected by the fuel filter).
+      storeMetrics: computeStoreMetrics(
+        sales.filter((sale) => scopeIds.has(sale.branchId)),
+        range,
+        users,
+      ),
       alerts: tankAlerts(scope),
       tankMatrix: scope.map((branch) => ({ id: branch.id, name: branch.name, levels: tankLevels(branch) })),
     }
-  }, [branches, selectedBranch, filters])
+  }, [branches, sales, users, selectedBranch, filters])
 
   const openFilters = () => setIsShowingFilters(true)
   const scopeLabel = selectedBranch?.name ?? 'Todo el país'
@@ -82,7 +92,9 @@ export function DashboardPage() {
         <FuelSalesTableCard metrics={metrics} fuels={fuels} className={isConsolidated ? 'lg:col-span-5' : 'lg:col-span-12'} />
         {isConsolidated && <BranchSalesTableCard rows={metrics.rows} className="lg:col-span-7" />}
 
-        <div className="grid grid-cols-2 gap-3 lg:col-span-12 lg:gap-4">
+        <StoreSalesCard metrics={storeMetrics} className="lg:col-span-7" />
+
+        <div className="grid grid-cols-2 content-start gap-3 lg:col-span-5 lg:grid-cols-1 lg:gap-4">
           <StatTile icon={Truck} title="Compras recibidas" value={AppFormat.currency(metrics.purchases)} subtitle="Combustible" />
           <StatTile
             icon={TriangleAlert}

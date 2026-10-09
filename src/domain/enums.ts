@@ -41,11 +41,12 @@ export function fuelRecord(value: (fuel: FuelType) => number): FuelRecord {
 
 // MARK: Roles
 
-export type UserRole = 'generalManager' | 'branchManager'
+export type UserRole = 'generalManager' | 'branchManager' | 'employee'
 
 export const roleDisplayName: Record<UserRole, string> = {
   generalManager: 'Gerente general',
   branchManager: 'Gerente de sucursal',
+  employee: 'Empleado',
 }
 
 // MARK: Cuts
@@ -103,3 +104,42 @@ export function worstOf(statuses: TankStatus[]): TankStatus {
 
 export const TANK_STATUS_LEGEND =
   'Crítico: < 20 % o < 1.5 días de venta · Medio: < 40 % o < 3 días · Óptimo: el resto. Los días se estiman con el promedio de venta de los últimos 7 días.'
+
+// MARK: Store and maintenance
+
+/** Sections of the franchise catalog. Services are not kept in stock. */
+export const CATALOG_CATEGORIES = ['convenience', 'lubricant', 'service'] as const
+export type CatalogCategory = (typeof CATALOG_CATEGORIES)[number]
+
+/** Categories sold in the store (with inventory). */
+export const PRODUCT_CATEGORIES: readonly CatalogCategory[] = ['convenience', 'lubricant']
+
+export const catalogCategoryInfo: Record<CatalogCategory, { displayName: string; color: string; tracksStock: boolean }> = {
+  convenience: { displayName: 'Conveniencia', color: 'var(--brand-green)', tracksStock: true },
+  lubricant: { displayName: 'Lubricantes', color: 'var(--warning-amber)', tracksStock: true },
+  service: { displayName: 'Mantenimiento', color: 'var(--diesel-gray)', tracksStock: false },
+}
+
+/** A sale is either a store ticket (products) or a maintenance order (services). */
+export type SaleKind = 'store' | 'service'
+
+export type PaymentMethod = 'cash' | 'card'
+
+/** Store inventory alert of one product in one branch. */
+export type StockStatus = 'out' | 'low' | 'available'
+
+/** Lower is more urgent (out < low < available). */
+export const stockStatusRank: Record<StockStatus, number> = { out: 0, low: 1, available: 2 }
+
+export const stockStatusInfo: Record<StockStatus, { displayName: string; color: string }> = {
+  out: { displayName: 'Agotado', color: 'var(--brand-red)' },
+  low: { displayName: 'Bajo', color: 'var(--warning-amber)' },
+  available: { displayName: 'Disponible', color: 'var(--brand-green)' },
+}
+
+/** Out: nothing left. Low: at or below the minimum of the catalog. Available: otherwise. */
+export function evaluateStockStatus(available: number, minimum: number): StockStatus {
+  if (available <= 0) return 'out'
+  if (available <= minimum) return 'low'
+  return 'available'
+}

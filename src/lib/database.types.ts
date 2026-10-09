@@ -1,11 +1,14 @@
-// Types of the public schema of Supabase, written from PumaStations/supabase/schema.sql.
+// Types of the public schema of Supabase, written from PumaStations/supabase/schema.sql and parcial2.sql.
 // When the project is linked, regenerate them with `npm run gen:types`.
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 type FuelColumn = 'diesel' | 'regular' | 'premium'
 type LossTypeColumn = 'shrinkage' | 'leak' | 'technicalFailure' | 'spill'
-type RoleColumn = 'generalManager' | 'branchManager'
+type RoleColumn = 'generalManager' | 'branchManager' | 'employee'
+type CatalogCategoryColumn = 'convenience' | 'lubricant' | 'service'
+type SaleKindColumn = 'store' | 'service'
+type PaymentMethodColumn = 'cash' | 'card'
 
 export type Database = {
   __InternalSupabase: {
@@ -73,6 +76,7 @@ export type Database = {
           is_active: boolean
           created_at: string
           branch_id: string | null
+          job_title: string
         }
         Insert: {
           id: string
@@ -85,6 +89,7 @@ export type Database = {
           is_active?: boolean
           created_at?: string
           branch_id?: string | null
+          job_title?: string
         }
         Update: {
           id?: string
@@ -97,12 +102,13 @@ export type Database = {
           is_active?: boolean
           created_at?: string
           branch_id?: string | null
+          job_title?: string
         }
         Relationships: [
           {
             foreignKeyName: 'profiles_branch_id_fkey'
             columns: ['branch_id']
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: 'branches'
             referencedColumns: ['id']
           },
@@ -317,6 +323,156 @@ export type Database = {
           },
         ]
       }
+      work_shifts: {
+        Row: {
+          id: string
+          branch_id: string
+          employee_id: string
+          day: string
+          shift: number
+          check_in_at: string | null
+          check_out_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          branch_id: string
+          employee_id: string
+          day: string
+          shift: number
+          check_in_at?: string | null
+          check_out_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          branch_id?: string
+          employee_id?: string
+          day?: string
+          shift?: number
+          check_in_at?: string | null
+          check_out_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      catalog_items: {
+        Row: {
+          id: string
+          name: string
+          category: CatalogCategoryColumn
+          detail: string
+          price: number
+          min_stock: number
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          category: CatalogCategoryColumn
+          detail?: string
+          price: number
+          min_stock?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          category?: CatalogCategoryColumn
+          detail?: string
+          price?: number
+          min_stock?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      stock_entries: {
+        Row: {
+          id: string
+          branch_id: string
+          item_id: string
+          quantity: number
+          unit_cost: number
+          note: string
+          received_at: string
+        }
+        Insert: {
+          id?: string
+          branch_id: string
+          item_id: string
+          quantity: number
+          unit_cost?: number
+          note?: string
+          received_at?: string
+        }
+        Update: {
+          id?: string
+          branch_id?: string
+          item_id?: string
+          quantity?: number
+          unit_cost?: number
+          note?: string
+          received_at?: string
+        }
+        Relationships: []
+      }
+      sales: {
+        Row: {
+          id: string
+          branch_id: string
+          seller_id: string | null
+          kind: SaleKindColumn
+          payment_method: PaymentMethodColumn
+          vehicle_plate: string
+          sold_at: string
+        }
+        Insert: {
+          id?: string
+          branch_id: string
+          seller_id?: string | null
+          kind: SaleKindColumn
+          payment_method: PaymentMethodColumn
+          vehicle_plate?: string
+          sold_at?: string
+        }
+        Update: {
+          id?: string
+          branch_id?: string
+          seller_id?: string | null
+          kind?: SaleKindColumn
+          payment_method?: PaymentMethodColumn
+          vehicle_plate?: string
+          sold_at?: string
+        }
+        Relationships: []
+      }
+      sale_items: {
+        Row: {
+          id: string
+          sale_id: string
+          item_id: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          sale_id: string
+          item_id: string
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          id?: string
+          sale_id?: string
+          item_id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -334,6 +490,21 @@ export type Database = {
           p_phone: string
           p_is_active: boolean
           p_branch_id: string | null
+        }
+        Returns: undefined
+      }
+      /** Creates or edits an employee of the caller's branch (branch manager only). */
+      save_employee: {
+        Args: {
+          p_id: string
+          p_email: string
+          p_password: string
+          p_first_name: string
+          p_last_name: string
+          p_dui: string
+          p_phone: string
+          p_job_title: string
+          p_is_active: boolean
         }
         Returns: undefined
       }

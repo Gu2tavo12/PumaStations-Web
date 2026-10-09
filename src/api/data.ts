@@ -29,7 +29,20 @@ async function selectAll<T extends TableName>(table: T): Promise<PumaRows[T]> {
 
 /** Downloads every table and builds the in-memory graph (RemoteSync.signIn in iOS). */
 export async function fetchPumaData(): Promise<PumaData> {
-  const [profiles, branches, pumps, salesCuts, pumpSales, receptions, losses] = await Promise.all([
+  const [
+    profiles,
+    branches,
+    pumps,
+    salesCuts,
+    pumpSales,
+    receptions,
+    losses,
+    workShifts,
+    catalogItems,
+    stockEntries,
+    sales,
+    saleItems,
+  ] = await Promise.all([
     selectAll('profiles'),
     selectAll('branches'),
     selectAll('pumps'),
@@ -37,6 +50,11 @@ export async function fetchPumaData(): Promise<PumaData> {
     selectAll('pump_sales'),
     selectAll('fuel_receptions'),
     selectAll('fuel_losses'),
+    selectAll('work_shifts'),
+    selectAll('catalog_items'),
+    selectAll('stock_entries'),
+    selectAll('sales'),
+    selectAll('sale_items'),
   ])
   return buildGraph({
     profiles,
@@ -46,6 +64,11 @@ export async function fetchPumaData(): Promise<PumaData> {
     pump_sales: pumpSales,
     fuel_receptions: receptions,
     fuel_losses: losses,
+    work_shifts: workShifts,
+    catalog_items: catalogItems,
+    stock_entries: stockEntries,
+    sales,
+    sale_items: saleItems,
   })
 }
 

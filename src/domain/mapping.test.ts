@@ -17,6 +17,20 @@ const rows: PumaRows = {
       is_active: true,
       created_at: '2026-08-01T12:00:00+00:00',
       branch_id: 'b2',
+      job_title: '',
+    },
+    {
+      id: 'u3',
+      first_name: 'Mario',
+      last_name: 'Rivas',
+      email: 'mrivas@puma.sv',
+      role: 'employee',
+      dui: '',
+      phone: '',
+      is_active: true,
+      created_at: '2026-08-01T12:00:00+00:00',
+      branch_id: 'b2',
+      job_title: 'Pistero',
     },
     {
       id: 'u1',
@@ -29,6 +43,7 @@ const rows: PumaRows = {
       is_active: true,
       created_at: '2026-08-01T12:00:00+00:00',
       branch_id: null,
+      job_title: '',
     },
   ],
   branches: ['b2', 'b1'].map((id) => ({
@@ -70,6 +85,25 @@ const rows: PumaRows = {
   fuel_losses: [
     { id: 'l1', cut_id: 'c2', type: 'shrinkage', fuel: 'regular', gallons: 12, cost_per_gallon: 2.95, pump_number: null, details: '', recorded_at: '2026-10-09T00:00:00+00:00' },
   ],
+  work_shifts: [
+    { id: 'w1', branch_id: 'b2', employee_id: 'u3', day: '2026-10-08', shift: 1, check_in_at: '2026-10-08T12:02:00+00:00', check_out_at: null, created_at: '2026-10-01T12:00:00+00:00' },
+  ],
+  catalog_items: [
+    { id: 'i2', name: 'Cambio de aceite', category: 'service', detail: '', price: 25, min_stock: 0, is_active: true, created_at: '2026-08-01T12:00:00+00:00' },
+    { id: 'i3', name: 'Aceite 20W-50', category: 'lubricant', detail: 'Botella 1 L', price: 7.5, min_stock: 6, is_active: true, created_at: '2026-08-01T12:00:00+00:00' },
+    { id: 'i1', name: 'Agua 600 ml', category: 'convenience', detail: '', price: 0.75, min_stock: 12, is_active: true, created_at: '2026-08-01T12:00:00+00:00' },
+  ],
+  stock_entries: [
+    { id: 'e1', branch_id: 'b2', item_id: 'i1', quantity: 24, unit_cost: 0.4, note: '', received_at: '2026-10-01T12:00:00+00:00' },
+  ],
+  sales: [
+    { id: 'v1', branch_id: 'b2', seller_id: 'u3', kind: 'store', payment_method: 'cash', vehicle_plate: '', sold_at: '2026-10-08T13:00:00+00:00' },
+    { id: 'v2', branch_id: 'b2', seller_id: 'u3', kind: 'service', payment_method: 'card', vehicle_plate: 'P123-456', sold_at: '2026-10-08T15:00:00+00:00' },
+  ],
+  sale_items: [
+    { id: 'si1', sale_id: 'v1', item_id: 'i1', quantity: 2, unit_price: 0.75 },
+    { id: 'si2', sale_id: 'v2', item_id: 'i2', quantity: 1, unit_price: 25 },
+  ],
 }
 
 describe('buildGraph', () => {
@@ -80,7 +114,7 @@ describe('buildGraph', () => {
     expect(data.branches.map((branch) => branch.name)).toEqual(['Puma Escalón', 'Puma Merliot'])
     expect(escalon.pumps.map((pump) => pump.number)).toEqual([1, 2, 3, 4, 5, 6])
     expect(escalon.cuts.map((cut) => cut.shift)).toEqual([1, 2])
-    expect(data.users.map((user) => user.firstName)).toEqual(['Elena', 'Roberto'])
+    expect(data.users.map((user) => user.firstName)).toEqual(['Elena', 'Mario', 'Roberto'])
   })
 
   it('attaches the movements to their cut', () => {
@@ -99,6 +133,16 @@ describe('buildGraph', () => {
     expect(managerOf(escalon, data.users)?.email).toBe('rmartinez@puma.sv')
     expect(managerOf(data.branches[1], data.users)).toBeUndefined()
     expect(hasOperation(data.branches[1])).toBe(false)
+  })
+
+  it('maps the catalog, the sales and the staff', () => {
+    expect(data.catalog.map((item) => item.id)).toEqual(['i1', 'i3', 'i2'])
+    expect(data.sales.map((sale) => sale.id)).toEqual(['v2', 'v1'])
+    expect(data.sales[1].items[0].item?.name).toBe('Agua 600 ml')
+    expect(data.sales[0].vehiclePlate).toBe('P123-456')
+    expect(data.stockEntries[0]).toMatchObject({ branchId: 'b2', itemId: 'i1', quantity: 24 })
+    expect(data.workShifts[0]).toMatchObject({ employeeId: 'u3', shift: 1, checkOutAt: null })
+    expect(data.users.find((user) => user.id === 'u3')?.jobTitle).toBe('Pistero')
   })
 })
 

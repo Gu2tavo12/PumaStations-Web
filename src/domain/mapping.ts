@@ -1,6 +1,18 @@
 import { inZone, parseDay } from '@/domain/calendar'
-import type { CutShift } from '@/domain/enums'
-import type { Branch, FuelLoss, FuelReception, PumaData, PumpSale, SalesCut, UserAccount } from '@/domain/models'
+import { CATALOG_CATEGORIES, type CutShift } from '@/domain/enums'
+import type {
+  Branch,
+  CatalogItem,
+  FuelLoss,
+  FuelReception,
+  PumaData,
+  PumpSale,
+  Sale,
+  SalesCut,
+  StockEntry,
+  UserAccount,
+  WorkShift,
+} from '@/domain/models'
 import type { Tables } from '@/lib/database.types'
 
 /** Rows of every table, as returned by Supabase. */
@@ -12,6 +24,11 @@ export type PumaRows = {
   pump_sales: Tables<'pump_sales'>[]
   fuel_receptions: Tables<'fuel_receptions'>[]
   fuel_losses: Tables<'fuel_losses'>[]
+  work_shifts: Tables<'work_shifts'>[]
+  catalog_items: Tables<'catalog_items'>[]
+  stock_entries: Tables<'stock_entries'>[]
+  sales: Tables<'sales'>[]
+  sale_items: Tables<'sale_items'>[]
 }
 
 function groupBy<T>(items: T[], key: (item: T) => string): Map<string, T[]> {
@@ -37,6 +54,50 @@ export function mapUser(row: Tables<'profiles'>): UserAccount {
     isActive: row.is_active,
     createdAt: inZone(row.created_at),
     branchId: row.branch_id,
+    jobTitle: row.job_title ?? '',
+  }
+}
+
+export function mapCatalogItem(row: Tables<'catalog_items'>): CatalogItem {
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    detail: row.detail,
+    price: row.price,
+    minStock: row.min_stock,
+    isActive: row.is_active,
+    createdAt: inZone(row.created_at),
+  }
+}
+
+/** Catalog sorted by category and name (DataStore.catalogItems in iOS). */
+export function sortCatalog(items: CatalogItem[]): CatalogItem[] {
+  const order = (item: CatalogItem) => CATALOG_CATEGORIES.indexOf(item.category)
+  return [...items].sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name, 'es'))
+}
+
+function mapWorkShift(row: Tables<'work_shifts'>): WorkShift {
+  return {
+    id: row.id,
+    branchId: row.branch_id,
+    employeeId: row.employee_id,
+    day: parseDay(row.day),
+    shift: (row.shift === 2 ? 2 : 1) as CutShift,
+    checkInAt: row.check_in_at ? inZone(row.check_in_at) : null,
+    checkOutAt: row.check_out_at ? inZone(row.check_out_at) : null,
+  }
+}
+
+function mapStockEntry(row: Tables<'stock_entries'>): StockEntry {
+  return {
+    id: row.id,
+    branchId: row.branch_id,
+    itemId: row.item_id,
+    quantity: row.quantity,
+    unitCost: row.unit_cost,
+    note: row.note,
+    receivedAt: inZone(row.received_at),
   }
 }
 
@@ -120,5 +181,34 @@ export function buildGraph(rows: PumaRows): PumaData {
     .map(mapUser)
     .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`, 'es'))
 
-  return { branches, users }
+  const catalog = sortCatalog(rows.catalog_items.map(mapCatalogItem))
+  const catalogById = new Map(catalog.map((item) => [item.id, item]))
+  const linesBySale = groupBy(rows.sale_items, (row) => row.sale_id)
+
+  const sales: Sale[] = rows.sales
+    .map((row) => ({
+      id: row.id,
+      branchId: row.branch_id,
+      sellerId: row.seller_id,
+      kind: row.kind,
+      payment: row.payment_method,
+      vehiclePlate: row.vehicle_plate,
+      soldAt: inZone(row.sold_at),
+      items: (linesBySale.get(row.id) ?? []).map((line) => ({
+        id: line.id,
+        item: catalogById.get(line.item_id) ?? null,
+        quantity: line.quantity,
+        unitPrice: line.unit_price,
+      })),
+    }))
+    .sort((a, b) => b.soldAt.getTime() - a.soldAt.getTime())
+
+  return {
+    branches,
+    users,
+    catalog,
+    stockEntries: rows.stock_entries.map(mapStockEntry),
+    sales,
+    workShifts: rows.work_shifts.map(mapWorkShift),
+  }
 }
