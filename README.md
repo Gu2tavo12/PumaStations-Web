@@ -28,6 +28,10 @@ En `.env.local` escribe la **Project URL** y la **publishable key** (Settings �
 | `npm test` | Pruebas con Vitest |
 | `npm run gen:types` | Regenera `src/lib/database.types.ts` (requiere Supabase CLI con el proyecto enlazado) |
 
+## Acceso
+
+Solo entra el **gerente general** activo. Un gerente de sucursal que intente entrar ve un mensaje y se cierra su sesión; RLS en Supabase sigue protegiendo los datos de todos modos. En desarrollo, el login muestra la cuenta de prueba del seed.
+
 ## Stack
 
 Vite + React 19 + TypeScript, Tailwind v4 + shadcn/ui, TanStack Query, React Router, react-hook-form + zod, Recharts y date-fns.
@@ -36,12 +40,14 @@ Vite + React 19 + TypeScript, Tailwind v4 + shadcn/ui, TanStack Query, React Rou
 
 ```
 src/
-├── app/         providers, router y tema
+├── app/         providers, router, sesión (auth), tema y layout
+├── api/         descarga de datos desde Supabase (TanStack Query)
 ├── components/
 │   ├── ui/      componentes de shadcn (generados)
 │   └── puma/    componentes con la estética de la app de iOS
+├── domain/      reglas de negocio portadas de iOS (TS puro, con pruebas)
 ├── features/    pantallas por sección
-└── lib/         cliente de Supabase, variables de entorno, tipos de la BD y utilidades
+└── lib/         cliente de Supabase, variables de entorno, tipos de la BD y formatos
 ```
 
 Los colores de marca de `Theme.swift` están como tokens en `src/index.css`: `brand-green`, `brand-red`, `diesel-gray`, `warning-amber` y `track`, con sus variantes para modo oscuro. Se usan como clases de Tailwind, por ejemplo `bg-brand-green` o `text-warning-amber`.

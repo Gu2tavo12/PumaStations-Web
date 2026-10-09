@@ -112,14 +112,16 @@ src/
   - Providers (Query, tema, router y toasts).
   - Vitest.
   - Logo sin el cuadriculado incrustado del PNG original. En modo oscuro va sobre una placa blanca.
-- [ ] **Fase 1: autenticación y guard**
-  - Login con la estética de `LoginView`.
-  - Si el rol no es `generalManager` o la cuenta está inactiva, se cierra la sesión con un mensaje.
-  - Layout con sidebar y la página de Perfil.
-- [ ] **Fase 2: dominio**
-  - Portar `Enums`, `CutModels`, `InventoryCalculator` y `DashboardCalculator` a TS.
-  - Pruebas con Vitest sobre los casos del seed.
-  - Carga de todas las tablas, como `RemoteSync.signIn`.
+- [x] **Fase 1: autenticación y guard**
+  - Login con la estética de `LoginView` y los mismos mensajes de error que iOS.
+  - Si el rol no es `generalManager`, la cuenta está inactiva o no tiene perfil, se cierra la sesión con un mensaje.
+  - Layout: sidebar en escritorio y barra de pestañas en móvil. Página de Perfil con selector de tema.
+  - Las pantallas de Dashboard, Sucursales y Gerentes son vistas previas que muestran los datos calculados por el dominio. Se reemplazan en las fases 3 a 5.
+- [x] **Fase 2: dominio**
+  - `src/domain`: `enums`, `models`, `mapping`, `cut`, `inventory`, `period` y `dashboard`, portados de iOS.
+  - Fechas con `TZDate` en `America/El_Salvador`: los resultados no dependen de la zona horaria del navegador.
+  - 29 pruebas con Vitest. Pasan con TZ=UTC, Asia/Tokyo y America/New_York.
+  - `src/api/data.ts`: descarga paginada de las 7 tablas, de 1000 en 1000 filas, como `selectAll` en iOS. Se descarga una vez por sesión.
 - [ ] **Fase 3: Dashboard**
   - Filtros guardados en la URL.
   - Todas las tarjetas.

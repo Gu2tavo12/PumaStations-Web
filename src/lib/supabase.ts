@@ -14,3 +14,9 @@ export const supabase: PumaClient | null = env
       auth: { persistSession: true, autoRefreshToken: true },
     })
   : null
+
+/** Client for code that only runs once Supabase is configured (after sign in). */
+export function requireSupabase(): PumaClient {
+  if (!supabase) throw new Error('Falta configurar Supabase. Crea el archivo .env.local como indica el README.')
+  return supabase
+}

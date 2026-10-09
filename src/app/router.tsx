@@ -1,9 +1,22 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate } from 'react-router'
 
-import { SetupPage } from '@/features/setup/SetupPage'
+import { RequireAuth } from '@/app/AppLayout'
+import { RouteError } from '@/app/RouteError'
+import { LoginPage } from '@/features/auth/LoginPage'
+import { BranchesPreviewPage, DashboardPreviewPage, ManagersPreviewPage } from '@/features/preview/PreviewPages'
+import { ProfilePage } from '@/features/profile/ProfilePage'
 
-// Phase 1 replaces the setup page with login + the general manager layout.
 export const router = createBrowserRouter([
-  { path: '/', element: <SetupPage /> },
-  { path: '*', element: <SetupPage /> },
+  { path: '/login', element: <LoginPage />, errorElement: <RouteError /> },
+  {
+    element: <RequireAuth />,
+    errorElement: <RouteError />,
+    children: [
+      { index: true, element: <DashboardPreviewPage /> },
+      { path: 'sucursales', element: <BranchesPreviewPage /> },
+      { path: 'gerentes', element: <ManagersPreviewPage /> },
+      { path: 'perfil', element: <ProfilePage /> },
+      { path: '*', element: <Navigate to="/" replace /> },
+    ],
+  },
 ])
