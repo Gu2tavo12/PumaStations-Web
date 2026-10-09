@@ -1,27 +1,44 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 
 import { RequireAuth } from '@/app/AppLayout'
+import { PageFallback } from '@/app/PageFallback'
 import { RouteError } from '@/app/RouteError'
 import { LoginPage } from '@/features/auth/LoginPage'
-import { BranchListPage } from '@/features/branches/BranchListPage'
-import { CutReportPage } from '@/features/branches/CutReportPage'
-import { StationDetailPage } from '@/features/branches/StationDetailPage'
-import { DashboardPage } from '@/features/dashboard/DashboardPage'
-import { ManagersPreviewPage } from '@/features/preview/PreviewPages'
-import { ProfilePage } from '@/features/profile/ProfilePage'
+
+// Each section is its own chunk (the dashboard brings Recharts), so the first load stays small.
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage />, errorElement: <RouteError /> },
   {
     element: <RequireAuth />,
     errorElement: <RouteError />,
+    hydrateFallbackElement: <PageFallback />,
     children: [
-      { index: true, element: <DashboardPage /> },
-      { path: 'sucursales', element: <BranchListPage /> },
-      { path: 'sucursales/:branchId', element: <StationDetailPage /> },
-      { path: 'sucursales/:branchId/cortes/:cutId', element: <CutReportPage /> },
-      { path: 'gerentes', element: <ManagersPreviewPage /> },
-      { path: 'perfil', element: <ProfilePage /> },
+      {
+        index: true,
+        lazy: () => import('@/features/dashboard/DashboardPage').then((module) => ({ Component: module.DashboardPage })),
+      },
+      {
+        path: 'sucursales',
+        lazy: () => import('@/features/branches/BranchListPage').then((module) => ({ Component: module.BranchListPage })),
+      },
+      {
+        path: 'sucursales/:branchId',
+        lazy: () =>
+          import('@/features/branches/StationDetailPage').then((module) => ({ Component: module.StationDetailPage })),
+      },
+      {
+        path: 'sucursales/:branchId/cortes/:cutId',
+        lazy: () => import('@/features/branches/CutReportPage').then((module) => ({ Component: module.CutReportPage })),
+      },
+      {
+        path: 'gerentes',
+        lazy: () => import('@/features/managers/ManagerListPage').then((module) => ({ Component: module.ManagerListPage })),
+      },
+      {
+        path: 'perfil',
+        lazy: () => import('@/features/profile/ProfilePage').then((module) => ({ Component: module.ProfilePage })),
+      },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

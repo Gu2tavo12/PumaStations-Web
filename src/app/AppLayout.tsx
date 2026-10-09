@@ -9,6 +9,7 @@ import { NAV_ITEMS } from '@/app/navigation'
 import { InitialsAvatar, PumaCard } from '@/components/puma/primitives'
 import { PumaLogo } from '@/components/puma/PumaLogo'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Sidebar,
   SidebarContent,
@@ -144,6 +145,25 @@ function BottomTabBar() {
   )
 }
 
+/** Placeholder with the shape of a page while the data downloads. */
+function PageSkeleton() {
+  return (
+    <div className="flex flex-col gap-4" role="status" aria-label="Descargando datos">
+      <Skeleton className="mt-1 h-10 w-56 rounded-xl" />
+      <div className="flex gap-2">
+        <Skeleton className="h-9 w-36 rounded-full" />
+        <Skeleton className="h-9 w-32 rounded-full" />
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <Skeleton className="h-48 rounded-card bg-card lg:col-span-7" />
+        <Skeleton className="h-48 rounded-card bg-card lg:col-span-5" />
+        <Skeleton className="h-64 rounded-card bg-card lg:col-span-5" />
+        <Skeleton className="h-64 rounded-card bg-card lg:col-span-7" />
+      </div>
+    </div>
+  )
+}
+
 /** Downloads the data once per session; shows the iOS "No se pudo sincronizar" state on failure. */
 function DataBoundary({ children }: { children: ReactNode }) {
   const { data, isPending, error, refetch, isRefetching } = usePumaData()
@@ -154,14 +174,7 @@ function DataBoundary({ children }: { children: ReactNode }) {
     if (error && data) toast.error('No se pudo actualizar', { description: error.message })
   }, [error, data])
 
-  if (isPending) {
-    return (
-      <div className="flex min-h-[50svh] flex-col items-center justify-center gap-3 text-muted-foreground">
-        <Loader2 className="size-6 animate-spin" />
-        <p className="text-sm">Descargando datos…</p>
-      </div>
-    )
-  }
+  if (isPending) return <PageSkeleton />
 
   if (error && !data) {
     return (

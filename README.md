@@ -32,6 +32,18 @@ En `.env.local` escribe la **Project URL** y la **publishable key** (Settings �
 
 Solo entra el **gerente general** activo. Un gerente de sucursal que intente entrar ve un mensaje y se cierra su sesión; RLS en Supabase sigue protegiendo los datos de todos modos. En desarrollo, el login muestra la cuenta de prueba del seed.
 
+## Despliegue
+
+Es un sitio estático: `npm run build` genera `dist/`. Ya incluye la configuración para que las rutas (por ejemplo `/sucursales/…`) funcionen al recargar:
+
+- **Vercel:** `vercel.json`. Importa el repositorio; Vercel detecta Vite.
+- **Netlify:** `public/_redirects`. Comando `npm run build`, carpeta `dist`.
+
+En ambos casos:
+
+1. Define `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` en las variables de entorno del proyecto (se incorporan al compilar).
+2. En Supabase → Authentication → URL Configuration, agrega el dominio publicado en **Site URL** o **Redirect URLs**.
+
 ## Stack
 
 Vite + React 19 + TypeScript, Tailwind v4 + shadcn/ui, TanStack Query, React Router, react-hook-form + zod, Recharts y date-fns.

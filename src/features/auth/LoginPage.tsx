@@ -1,5 +1,5 @@
 import { Loader2, Lock, Mail, TriangleAlert } from 'lucide-react'
-import { useId, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router'
 
 import { useAuth } from '@/app/auth-context'
@@ -18,6 +18,10 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    document.title = 'Iniciar sesión · Puma Estaciones'
+  }, [])
 
   if (auth.status === 'signedIn') {
     const from = (location.state as { from?: string } | null)?.from ?? '/'

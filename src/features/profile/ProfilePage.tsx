@@ -3,6 +3,7 @@ import { LogOut, Monitor, Moon, Sun } from 'lucide-react'
 import { useAuth, useCurrentUser } from '@/app/auth-context'
 import { useTheme, type Theme } from '@/app/theme-context'
 import { InitialsAvatar, LabeledRow, PageHeader, PumaCard } from '@/components/puma/primitives'
+import { RefreshDataButton } from '@/components/puma/RefreshDataButton'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { fullName, initials } from '@/domain/cut'
 import { roleDisplayName } from '@/domain/enums'
@@ -57,6 +58,10 @@ export function ProfilePage() {
           </ToggleGroup>
         </PumaCard>
       </section>
+
+      <PumaCard className="p-0">
+        <RefreshDataButton variant="row" />
+      </PumaCard>
 
       <PumaCard className="p-0">
         <button

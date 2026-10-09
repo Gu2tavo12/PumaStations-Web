@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
-import { useEffect, useMemo, type ComponentProps, type ReactNode } from 'react'
-import { Controller, useForm, type FieldError } from 'react-hook-form'
+import { useEffect, useMemo } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { useCreateBranch } from '@/api/branches'
 import { usePumaData } from '@/api/data'
 import { FormSection } from '@/components/puma/controls'
+import { FieldMessage, INPUT_CLASS, LabeledField, TextRow } from '@/components/puma/form'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -106,7 +107,7 @@ export function BranchFormDialog({ open, onOpenChange }: { open: boolean; onOpen
           <FormSection title="Datos generales">
             <TextRow placeholder="Nombre (ej. Puma Merliot)" error={errors.name} {...register('name')} autoFocus />
             <LabeledField label="Código">
-              <input {...register('code')} placeholder="SUC-000" className={inputClass('text-right')} />
+              <input {...register('code')} placeholder="SUC-000" className={cn(INPUT_CLASS, 'text-right')} />
             </LabeledField>
             <TextRow placeholder="Dirección" error={errors.address} {...register('address')} />
             <TextRow placeholder="Municipio" error={errors.municipality} {...register('municipality')} />
@@ -127,7 +128,7 @@ export function BranchFormDialog({ open, onOpenChange }: { open: boolean; onOpen
                     step="any"
                     aria-label={`Capacidad ${fuelInfo[fuel].displayName}`}
                     {...register(`capacity.${fuel}`, { valueAsNumber: true })}
-                    className={inputClass('w-28 text-right')}
+                    className={cn(INPUT_CLASS, 'w-28 text-right')}
                   />
                   <span className="text-muted-foreground">gal</span>
                 </div>
@@ -183,37 +184,5 @@ export function BranchFormDialog({ open, onOpenChange }: { open: boolean; onOpen
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
-
-function inputClass(extra?: string) {
-  return cn('h-11 min-w-0 bg-transparent text-[17px] outline-none placeholder:text-muted-foreground/70', extra)
-}
-
-/** Full-width text field row of a grouped form. */
-function TextRow({ error, ...props }: ComponentProps<'input'> & { error?: FieldError }) {
-  return (
-    <div className="not-last:border-b">
-      <input {...props} aria-invalid={Boolean(error)} className={inputClass('w-full')} />
-      {error && <FieldMessage error={error} />}
-    </div>
-  )
-}
-
-/** "Label … control" row of a grouped form (LabeledContent). */
-function LabeledField({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label className="flex min-h-11 items-center justify-between gap-3 text-[17px] not-last:border-b">
-      <span className="shrink-0">{label}</span>
-      {children}
-    </label>
-  )
-}
-
-function FieldMessage({ error }: { error: FieldError }) {
-  return (
-    <p role="alert" className="pb-2 text-[13px] text-brand-red">
-      {error.message}
-    </p>
   )
 }

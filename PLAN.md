@@ -131,13 +131,15 @@ src/
   - Nueva sucursal (react-hook-form + zod, mismas validaciones que iOS): crea la sucursal, sus 6 bombas y vincula al gerente con `save_manager`. Si fallan las bombas, se borra la sucursal para no dejarla a medias.
   - Detalle de estación (`/sucursales/:id`) con periodo en la URL. Historial con "Mostrar más".
   - Reporte de corte (`/sucursales/:id/cortes/:corte`), solo lectura. A diferencia de iOS, los cortes de hoy también abren su reporte, para revisar un corte en proceso.
-- [ ] **Fase 5: Gerentes**
-  - Lista con filtros.
-  - Formulario de alta o edición con `rpc('save_manager')`.
-- [ ] **Fase 6: pulido y despliegue**
-  - Skeletons, toasts, diseño responsive y accesibilidad.
-  - Despliegue en Vercel o Netlify.
-  - Agregar el dominio en Supabase → Auth → URL Configuration.
+- [x] **Fase 5: Gerentes**
+  - Lista con filtro (Todos, Vinculados o Sin sucursal) y búsqueda por nombre o correo.
+  - Formulario de alta o edición con `rpc('save_manager')`, con las mismas validaciones que iOS: nombre y apellidos, correo válido y no repetido, contraseña de al menos 6 caracteres (opcional al editar), y sucursales ya vinculadas a otro gerente deshabilitadas.
+  - Los errores del servidor (correo o sucursal duplicados) se traducen a los mismos mensajes.
+- [x] **Fase 6: pulido y preparación del despliegue**
+  - Cada pantalla es un chunk aparte: la carga inicial pasó de 1.35 MB a ~350 kB y Recharts solo se descarga en el Dashboard.
+  - Esqueleto de carga, título de pestaña por pantalla, foco visible con teclado y botón "Actualizar datos" (Dashboard y Perfil).
+  - `vercel.json` y `public/_redirects` (Netlify) para que las rutas de la SPA funcionen al recargar.
+  - Pendiente: publicar el sitio y agregar su dominio en Supabase (ver README).
 
 ## Mejoras opcionales en Supabase (no rompen iOS)
 

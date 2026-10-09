@@ -1,5 +1,5 @@
 import { ChevronLeft, type LucideIcon } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router'
 
 import { tint } from '@/components/puma/tint'
@@ -74,8 +74,12 @@ export function InitialsAvatar({ initials, size = 38 }: { initials: string; size
   )
 }
 
-/** iOS large navigation title, with optional actions on the right. */
+/** iOS large navigation title, with optional actions on the right. Also names the browser tab. */
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: ReactNode; actions?: ReactNode }) {
+  useEffect(() => {
+    document.title = `${title} · Puma Estaciones`
+  }, [title])
+
   return (
     <header className="flex items-end justify-between gap-4 pb-2">
       <div className="min-w-0">

@@ -4,7 +4,9 @@ import { useMemo, useState } from 'react'
 import { usePumaData } from '@/api/data'
 import { FilterChip } from '@/components/puma/controls'
 import { IconSquare, PageHeader, Pill, PumaCard } from '@/components/puma/primitives'
-import { BranchSalesTableCard, FuelSalesTableCard, SalesChartCard, SalesKPICard, StatTile } from '@/components/puma/sales'
+import { RefreshDataButton } from '@/components/puma/RefreshDataButton'
+import { BranchSalesTableCard, FuelSalesTableCard, SalesKPICard, StatTile } from '@/components/puma/sales'
+import { SalesChartCard } from '@/components/puma/SalesChartCard'
 import { TankLevelsCard, TankMatrixCard, TankStatusPill } from '@/components/puma/tanks'
 import { Button } from '@/components/ui/button'
 import { hasOperation } from '@/domain/cut'
@@ -47,9 +49,12 @@ export function DashboardPage() {
       <PageHeader
         title="Dashboard"
         actions={
-          <Button variant="ghost" size="icon-lg" className="text-brand-green" onClick={openFilters} aria-label="Filtros">
-            <ListFilter className="size-6" />
-          </Button>
+          <>
+            <RefreshDataButton />
+            <Button variant="ghost" size="icon-lg" className="text-brand-green" onClick={openFilters} aria-label="Filtros">
+              <ListFilter className="size-6" />
+            </Button>
+          </>
         }
       />
 
