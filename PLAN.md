@@ -122,11 +122,15 @@ src/
   - Fechas con `TZDate` en `America/El_Salvador`: los resultados no dependen de la zona horaria del navegador.
   - 29 pruebas con Vitest. Pasan con TZ=UTC, Asia/Tokyo y America/New_York.
   - `src/api/data.ts`: descarga paginada de las 7 tablas, de 1000 en 1000 filas, como `selectAll` en iOS. Se descarga una vez por sesión.
-- [ ] **Fase 3: Dashboard**
-  - Filtros guardados en la URL.
-  - Todas las tarjetas.
-- [ ] **Fase 4: Sucursales**
-  - Lista, nueva sucursal, detalle de estación y reporte de corte.
+- [x] **Fase 3: Dashboard**
+  - Filtros de alcance, periodo (con rango de fechas) y combustible, guardados en la URL (`?sucursal=&periodo=&combustible=&desde=&hasta=`).
+  - Indicadores de ventas, alertas, matriz de tanques (o los tanques de la sucursal elegida), gráfica apilada, tablas por combustible y por sucursal, compras y pérdidas.
+  - Cuadrícula de 12 columnas en escritorio y una columna en móvil, en el mismo orden que iOS.
+- [x] **Fase 4: Sucursales**
+  - Lista con búsqueda, tarjetas de resumen y ventas del mes.
+  - Nueva sucursal (react-hook-form + zod, mismas validaciones que iOS): crea la sucursal, sus 6 bombas y vincula al gerente con `save_manager`. Si fallan las bombas, se borra la sucursal para no dejarla a medias.
+  - Detalle de estación (`/sucursales/:id`) con periodo en la URL. Historial con "Mostrar más".
+  - Reporte de corte (`/sucursales/:id/cortes/:corte`), solo lectura. A diferencia de iOS, los cortes de hoy también abren su reporte, para revisar un corte en proceso.
 - [ ] **Fase 5: Gerentes**
   - Lista con filtros.
   - Formulario de alta o edición con `rpc('save_manager')`.

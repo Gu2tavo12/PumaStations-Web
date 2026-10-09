@@ -1,5 +1,6 @@
-import type { LucideIcon } from 'lucide-react'
+import { ChevronLeft, type LucideIcon } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { Link } from 'react-router'
 
 import { tint } from '@/components/puma/tint'
 import { cn } from '@/lib/utils'
@@ -93,5 +94,15 @@ export function LabeledRow({ label, value }: { label: string; value: ReactNode }
       <span>{label}</span>
       <span className="truncate text-muted-foreground">{value}</span>
     </div>
+  )
+}
+
+/** Back link above a large title (iOS navigation back button). */
+export function BackLink({ to, label }: { to: string; label: string }) {
+  return (
+    <Link to={to} className="-ml-1 inline-flex items-center gap-0.5 text-[17px] text-brand-green hover:opacity-80">
+      <ChevronLeft className="size-6" strokeWidth={2.25} />
+      {label}
+    </Link>
   )
 }
